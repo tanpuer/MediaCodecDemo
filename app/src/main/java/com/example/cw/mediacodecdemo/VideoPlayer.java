@@ -193,6 +193,7 @@ public class VideoPlayer {
     private void decodeDelay(MediaCodec.BufferInfo bufferInfo, long startMs){
         long delayTime = bufferInfo.presentationTimeUs /1000 - (System.currentTimeMillis() -startMs);
         if (delayTime > 0){
+            Log.d(TAG, "decodeDelay: video delay " + delayTime);
             try {
                 Thread.sleep(delayTime);
             } catch (InterruptedException e) {
@@ -259,6 +260,10 @@ public class VideoPlayer {
          */
         public void requestStop() {
             mPlayer.requestStop();
+        }
+
+        public boolean isStopped(){
+            return mPlayer.mIsStopRequested;
         }
 
         @Override

@@ -153,6 +153,7 @@ public class AudioPlayer {
     private void decodeDelay(MediaCodec.BufferInfo bufferInfo, long startMs){
         long delayTime = bufferInfo.presentationTimeUs /1000 - (System.currentTimeMillis() -startMs);
         if (delayTime > 0){
+            Log.d(TAG, "decodeDelay: audio delay "+ delayTime);
             try {
                 Thread.sleep(delayTime);
             } catch (InterruptedException e) {
@@ -163,6 +164,17 @@ public class AudioPlayer {
 
     public void requestStop(){
         mIsRequestPaused= true;
+        if (mAudioTrack != null){
+            mAudioTrack.stop();
+            mAudioTrack = null;
+        }
+    }
+
+    public void requestPause(){
+        mIsRequestPaused= true;
+        if (mAudioTrack != null){
+            mAudioTrack.pause();
+        }
     }
 
     public static class PlayAudioTask implements Runnable{
@@ -186,6 +198,10 @@ public class AudioPlayer {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+
+        public boolean isStopped(){
+            return mAudioPlayer.mIsRequestPaused;
         }
 
         public void requestPause() {

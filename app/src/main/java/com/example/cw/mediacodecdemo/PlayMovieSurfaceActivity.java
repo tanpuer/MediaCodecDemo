@@ -18,7 +18,7 @@ public class PlayMovieSurfaceActivity extends AppCompatActivity implements Surfa
     private static final String TAG = "SurfaceActivity";
 
     private SurfaceView mSurfaceView;
-    private VideoPlayer mMoviePlayer;
+    private VideoPlayer mVideoPlayer;
     private AudioPlayer mAudioPlayer;
     private VideoPlayer.PlayTask mVideoPlayTask;
     private AudioPlayer.PlayAudioTask mAudioPlayTask;
@@ -35,16 +35,16 @@ public class PlayMovieSurfaceActivity extends AppCompatActivity implements Surfa
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/test.mov");
+        File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/test.mp4");
         Surface surface = surfaceHolder.getSurface();
-        mMoviePlayer = new VideoPlayer(file, surface, this);
+        mVideoPlayer = new VideoPlayer(file, surface, this);
         mAudioPlayer = new AudioPlayer(file);
 
-        movieWidth = mMoviePlayer.getVideoWidth();
-        movieHeight = mMoviePlayer.getVideoHeight();
+        movieWidth = mVideoPlayer.getVideoWidth();
+        movieHeight = mVideoPlayer.getVideoHeight();
         resetSurfaceSize();
         Log.d(TAG, "surfaceCreated width width: "+ movieWidth + ", height: "+ movieHeight);
-        mVideoPlayTask = new VideoPlayer.PlayTask(mMoviePlayer, this);
+        mVideoPlayTask = new VideoPlayer.PlayTask(mVideoPlayer, this);
         mVideoPlayTask.execute();
 
         mAudioPlayTask = new AudioPlayer.PlayAudioTask(mAudioPlayer);
@@ -55,15 +55,17 @@ public class PlayMovieSurfaceActivity extends AppCompatActivity implements Surfa
     @Override
     protected void onPause() {
         super.onPause();
-        mMoviePlayer.requestStop();
+        mVideoPlayTask.requestStop();
         mAudioPlayTask.requestPause();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mMoviePlayer = null;
+        mVideoPlayTask = null;
         mAudioPlayTask = null;
+        mAudioPlayer = null;
+        mVideoPlayer = null;
     }
 
     private void resetSurfaceSize(){
