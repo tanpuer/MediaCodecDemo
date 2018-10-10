@@ -39,6 +39,7 @@ public class PlayMovieSurfaceActivity extends AppCompatActivity implements Surfa
         Surface surface = surfaceHolder.getSurface();
         mVideoPlayer = new VideoPlayer(file, surface, this);
         mAudioPlayer = new AudioPlayer(file);
+        mVideoPlayer.setMediaTimeProvider(mAudioPlayer);
 
         movieWidth = mVideoPlayer.getVideoWidth();
         movieHeight = mVideoPlayer.getVideoHeight();

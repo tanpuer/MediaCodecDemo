@@ -6,6 +6,7 @@ import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.Surface;
 
@@ -30,6 +31,9 @@ public class VideoPlayer {
     private boolean mLoop;
     private MediaCodec.BufferInfo mBufferInfo;
     private int fps;
+
+    //avsync
+    private MediaTimeProvider mediaTimeProvider;
 
     public VideoPlayer(File mFileSource, Surface mOutputSurface, FrameCallback mFrameCallback) {
         this.mFileSource = mFileSource;
@@ -102,6 +106,7 @@ public class VideoPlayer {
         boolean inputDone = false;
 
         long startMs = System.currentTimeMillis();
+        long startNs = System.nanoTime();
         while (!outputDone){
             if (mIsStopRequested){
                 return;
@@ -162,15 +167,25 @@ public class VideoPlayer {
 
                     boolean doRender = (mBufferInfo.size != 0);
 
-                    // As soon as we call releaseOutputBuffer, the buffer will be forwarded
-                    // to SurfaceTexture to convert to a texture.  We can't control when it
-                    // appears on-screen, but we can manage the pace at which we release
-                    // the buffers.
                     if (doRender && frameCallback != null) {
                         frameCallback.preRender(mBufferInfo.presentationTimeUs);
                     }
-                    decodeDelay(mBufferInfo, startMs);
-                    decoder.releaseOutputBuffer(decoderStatus, doRender);
+//                    decodeDelay(mBufferInfo, startMs);
+//                    decoder.releaseOutputBuffer(decoderStatus, doRender);
+
+                    //
+                    if (mediaTimeProvider != null){
+                        long nowUs = mediaTimeProvider.getAudioTimeUs();
+                        long lateUs = mBufferInfo.presentationTimeUs - nowUs;
+                        Log.d(TAG, "doExtract: pts = " + mBufferInfo.presentationTimeUs + startMs *1000);
+                        Log.d(TAG, "doExtract: currUs - nowUs =" + lateUs);
+//                        if (lateUs > 50000){
+//                            decoder.releaseOutputBuffer(decoderStatus, false);
+//                            continue;
+//                        }
+                    }
+                    decoder.releaseOutputBuffer(decoderStatus, mBufferInfo.presentationTimeUs*1000 + startNs);
+
                     if (doRender && frameCallback != null) {
                         frameCallback.postRender();
                     }
@@ -200,6 +215,10 @@ public class VideoPlayer {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void setMediaTimeProvider(MediaTimeProvider mediaTimeProvider) {
+        this.mediaTimeProvider = mediaTimeProvider;
     }
 
     public int getVideoWidth(){

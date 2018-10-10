@@ -14,7 +14,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class AudioPlayer {
+public class AudioPlayer implements MediaTimeProvider{
 
     private static final String TAG = "AudioPlayer";
 
@@ -129,7 +129,7 @@ public class AudioPlayer {
                         outputDone = true;
                     }
                     ByteBuffer byteBuffer = decoder.getOutputBuffer(decoderStatus);
-                    decodeDelay(mBufferInfo, startMs);
+//                    decodeDelay(mBufferInfo, startMs);
                     // 如果解码成功，则将解码后的音频PCM数据用AudioTrack播放出来
                     byte[] mAudioOutTempBuf;
                     if (mBufferInfo.size > 0) {
@@ -175,6 +175,15 @@ public class AudioPlayer {
         if (mAudioTrack != null){
             mAudioTrack.pause();
         }
+    }
+
+    @Override
+    public long getAudioTimeUs() {
+        if (mAudioTrack != null){
+            int numFramePlayed = mAudioTrack.getPlaybackHeadPosition();
+            return (numFramePlayed *1000000L) / mAudioTrack.getSampleRate();
+        }
+        return -1L;
     }
 
     public static class PlayAudioTask implements Runnable{
